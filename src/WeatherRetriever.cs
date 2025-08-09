@@ -1,6 +1,7 @@
 
 using System.Net.Http.Json;
 using System.Text.Json;
+using Spectre.Console;
 
 namespace Tenki
 {
@@ -97,7 +98,7 @@ namespace Tenki
             string path = GEOCODING_PATH_1 + formatted_string + GEOCODING_PATH_2;
             HttpResponseMessage httpResponseMessage = await geocodingClient!.GetAsync(path);
             if (httpResponseMessage.IsSuccessStatusCode)
-            {
+            {   
                 geoInfo = await httpResponseMessage.Content.ReadFromJsonAsync<Geocoding>();
                 if (geoInfo == null)
                     return null;

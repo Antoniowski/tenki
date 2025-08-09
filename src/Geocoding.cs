@@ -1,5 +1,6 @@
 
 using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 
 namespace Tenki
 {
@@ -21,13 +22,15 @@ namespace Tenki
         public int admin1_id { get; set; }
         public int admin2_id { get; set; }
         public int admin3_id { get; set; }
+        public int admin4_id { get; set; }
         public string? timezone { get; set; }
         public int population { get; set; }
-        public List<string>? postcodes { get; set; }
+        public JsonArray? postcodes { get; set; }
         public int country_id { get; set; }
         public string? country { get; set; }
         public string? admin1 { get; set; }
         public string? admin2 { get; set; }
         public string? admin3 { get; set; }
+        public string? admin4 { get; set; }
     }
 }
