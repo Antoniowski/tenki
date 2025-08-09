@@ -57,7 +57,7 @@ namespace Tenki
         /// <returns>
         /// WeatherCurrent - current weather values for temperature, precipitation e weather type
         /// </returns>
-        public async Task<WeatherCurrent?> GetWeather(double latitude, double longitude)
+        public async Task<WeatherCurrent?> GetWeather(string latitude, string longitude)
         {
             Weather? weatherInfo;
             WeatherCurrent? weatherCurrentInfo;
