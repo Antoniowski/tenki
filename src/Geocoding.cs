@@ -18,9 +18,9 @@ namespace Tenki
         public double elevation { get; set; }
         public string? feature_code { get; set; }
         public string? country_code { get; set; }
-        public string? admin1_id { get; set; }
-        public string? admin2_id { get; set; }
-        public string? admin3_id { get; set; }
+        public int admin1_id { get; set; }
+        public int admin2_id { get; set; }
+        public int admin3_id { get; set; }
         public string? timezone { get; set; }
         public int population { get; set; }
         public List<string>? postcodes { get; set; }

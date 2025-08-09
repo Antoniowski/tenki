@@ -20,8 +20,8 @@ namespace Tenki
         private const string WEATHER_PATH_3 = "&current=temperature_2m,is_day,precipitation,weather_code";
         private const string GEOCODING_PATH_1 = "/v1/search?name=";
         private const string GEOCODING_PATH_2 = "&count=10&language=en&format=json";
-        private HttpClient weatherClient = new HttpClient();
-        private HttpClient geocodingClient = new HttpClient();
+        private HttpClient? weatherClient;
+        private HttpClient? geocodingClient;
 
         // METHODS
 
@@ -39,10 +39,13 @@ namespace Tenki
             if (!isReady)
             {
                 isReady = true;
-                Uri weatherUri = new Uri(WEATHER_BASE_PATH);
-                Uri geocodingUri = new Uri(GEOCODING_BASE_PATH);
+                weatherClient = new();
+                geocodingClient = new();
+                Uri weatherUri = new(WEATHER_BASE_PATH);
+                Uri geocodingUri = new(GEOCODING_BASE_PATH);
                 weatherClient.BaseAddress = weatherUri;
                 geocodingClient.BaseAddress = geocodingUri;
+                geocodingClient.Timeout = new TimeSpan(0, 5, 0);
             }
         }
 
@@ -55,13 +58,14 @@ namespace Tenki
         /// </returns>
         public async Task<WeatherCurrent?> GetWeather(double latitude, double longitude)
         {
-            Weather? weatherInfo = new Weather();
-            WeatherCurrent? weatherCurrentInfo = new WeatherCurrent();
+            Weather? weatherInfo;
+            WeatherCurrent? weatherCurrentInfo;
 
             if (!isReady)
                 return null;
 
-            HttpResponseMessage httpResponseMessage = await weatherClient.GetAsync(WEATHER_PATH_1+latitude+WEATHER_PATH_2+longitude+WEATHER_PATH_3);
+            string path = WEATHER_PATH_1 + latitude + WEATHER_PATH_2 + longitude + WEATHER_PATH_3;
+            HttpResponseMessage httpResponseMessage = await weatherClient!.GetAsync(path);
             if (httpResponseMessage.IsSuccessStatusCode)
             {
                 weatherInfo = await httpResponseMessage.Content.ReadFromJsonAsync<Weather>();
@@ -80,22 +84,23 @@ namespace Tenki
         /// </summary>
         /// 
         /// <returns>
-        /// WeatherCurrent - current weather values for temperature, precipitation e weather type
+        /// Geocoding - object containing information like latitude and longitude of the selected city
         /// </returns>
         public async Task<Geocoding?> GetGeocodingInfo(string cityToSearch)
         {
-            Geocoding? geoInfo = new Geocoding();
+            Geocoding? geoInfo;
             string formatted_string = cityToSearch.Replace(" ", "+");
+            
             if (!isReady)
                 return null;
 
-            HttpResponseMessage httpResponseMessage = await geocodingClient.GetAsync(GEOCODING_PATH_1 + formatted_string + GEOCODING_PATH_2);
+            string path = GEOCODING_PATH_1 + formatted_string + GEOCODING_PATH_2;
+            HttpResponseMessage httpResponseMessage = await geocodingClient!.GetAsync(path);
             if (httpResponseMessage.IsSuccessStatusCode)
             {
                 geoInfo = await httpResponseMessage.Content.ReadFromJsonAsync<Geocoding>();
                 if (geoInfo == null)
                     return null;
-                Console.Write(geoInfo.results);
                 return geoInfo;
             }
             return null;
