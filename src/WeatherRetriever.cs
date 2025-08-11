@@ -45,6 +45,7 @@ namespace Tenki
                 Uri weatherUri = new(WEATHER_BASE_PATH);
                 Uri geocodingUri = new(GEOCODING_BASE_PATH);
                 weatherClient.BaseAddress = weatherUri;
+                weatherClient.Timeout = new TimeSpan(0, 5, 0);
                 geocodingClient.BaseAddress = geocodingUri;
                 geocodingClient.Timeout = new TimeSpan(0, 5, 0);
             }

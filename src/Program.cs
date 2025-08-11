@@ -1,4 +1,5 @@
 ﻿using System.Net.Http.Json;
+using System.Runtime.InteropServices.Marshalling;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -63,9 +64,8 @@ namespace Tenki
                 // City Selection
                 List<string> resultsStrings = [];
                 foreach ((string s, GeocodingResult o) x in results)
-                {
                     resultsStrings.Add(x.s);
-                }
+                    
                 string chosenCity = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
                 .Title("Select the correct city")
@@ -78,6 +78,8 @@ namespace Tenki
                 File.AppendAllText(confPath, "latitude=" + coordinates.latitude + Environment.NewLine);
                 File.AppendAllText(confPath, "longitude=" + coordinates.longittude + Environment.NewLine);
             }
+            
+            //App
             List<string> configs = [.. File.ReadAllLines(confPath)];
             int startIndex = 0;
             string lat = "";
@@ -85,18 +87,14 @@ namespace Tenki
             string? latString = configs.Find(x => x.Contains("latitude"));
             string? lonString = configs.Find(x => x.Contains("longitude"));
             string? name = configs.Find(x => x.Contains("name"));
+
             if (latString == null)
-            {
                 AnsiConsole.WriteLine("Error with config file [latitude property not found in config file]");
-            }
             if (lonString == null)
-            {
                 AnsiConsole.WriteLine("Error with config file [longitude property not found in config file]");
-            }
             if (name == null)
-            {
                 AnsiConsole.WriteLine("Error with config file [name property not found in config file]");
-            }
+
             startIndex = latString!.IndexOf("=") + 1;
             lat = latString.Substring(startIndex).Replace(",", ".");
             startIndex = lonString!.IndexOf("=") + 1;
@@ -104,11 +102,37 @@ namespace Tenki
             startIndex = name!.IndexOf("=") + 1;
             name = name.Substring(startIndex).Replace("+", " ");
 
-            WeatherCurrent? weatherCurrent = await weatherRetriever.GetWeather(lat, lon);
-            if (weatherCurrent != null)
+            //First weather retrieving
+            // WeatherCurrent? weatherCurrent = null;
+            // await AnsiConsole.Status()
+            // .Spinner(Spinner.Known.Dots12)
+            // .StartAsync("Loading...", async ctx =>
+            // {
+            //     weatherCurrent = await weatherRetriever.GetWeather(lat, lon);
+            //     if (weatherCurrent == null)
+            //         return;
+            //     ctx.Refresh();
+            // });
+
+            while (true)
             {
-                AnsiConsole.WriteLine(name+": "+weatherCurrent.temperature_2m+" C, "+weatherCurrent.precipitation);
-                // SHOW APP
+                Canvas canvas = new Canvas(25, 16);
+                ImageMaker imageMaker = new();
+                canvas = imageMaker.Draw(canvas, Enums.WMOCodes.MainlyClear, true);
+                canvas.PixelWidth = 2;
+                //Get weather information
+                if (true/*weatherCurrent != null*/)
+                {
+                    AnsiConsole.Clear();
+                    AnsiConsole.Write(new Align(
+                        canvas,
+                        HorizontalAlignment.Center,
+                        VerticalAlignment.Middle));
+                    // SHOW APP
+                }
+                Thread.Sleep(1000);
+                // Thread.Sleep(10000);
+                // weatherCurrent = await weatherRetriever.GetWeather(lat, lon);
             }
         }
     }
