@@ -118,7 +118,7 @@ namespace Tenki
             {
                 Canvas canvas = new Canvas(25, 16);
                 ImageMaker imageMaker = new();
-                canvas = imageMaker.Draw(canvas, Enums.WMOCodes.MainlyClear, true);
+                canvas = imageMaker.Draw(canvas, Enums.WMOCodes.Fog, false);
                 canvas.PixelWidth = 2;
                 //Get weather information
                 if (true/*weatherCurrent != null*/)
