@@ -2,7 +2,7 @@
 
 Tenki is a simple weather displayer for the terminal written in C# using Spectre.Console framework.
 
-[!alt text](https://github.com/Antoniowski/tenki/blob/main/tenki_preview.png?raw=true)
+![preview](https://github.com/Antoniowski/tenki/blob/main/tenki_preview.png?raw=true)
 
 
 Open-meteo.com  is used as weather API. The version used is the "non-commercial" one, so it is limited to 10000 call 
