@@ -5,11 +5,22 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Spectre.Console;
+using Spectre.Console.Rendering;
 
 namespace Tenki
 {
     public static class Program
     {
+        public static WeatherRetriever? weatherRetriever;
+        public static WeatherCurrent? weatherCurrent;
+
+        public static void OnRetrievedWeather()
+        {
+            if (weatherRetriever == null)
+                return;
+            weatherCurrent = weatherRetriever.weatherCurrent;
+        }
+
         public static async Task Main(string[] args)
         {
             //Home path
@@ -19,6 +30,8 @@ namespace Tenki
             //Setup
             WeatherRetriever weatherRetriever = new();
             weatherRetriever.SetupClient();
+            weatherRetriever.RetrievedWeather += OnRetrievedWeather;
+
             if (!File.Exists(confPath))
             {
                 List<(string _string, GeocodingResult _object)> results = [];
@@ -65,7 +78,7 @@ namespace Tenki
                 List<string> resultsStrings = [];
                 foreach ((string s, GeocodingResult o) x in results)
                     resultsStrings.Add(x.s);
-                    
+
                 string chosenCity = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
                 .Title("Select the correct city")
@@ -78,7 +91,7 @@ namespace Tenki
                 File.AppendAllText(confPath, "latitude=" + coordinates.latitude + Environment.NewLine);
                 File.AppendAllText(confPath, "longitude=" + coordinates.longittude + Environment.NewLine);
             }
-            
+
             //App
             List<string> configs = [.. File.ReadAllLines(confPath)];
             int startIndex = 0;
@@ -103,37 +116,44 @@ namespace Tenki
             name = name.Substring(startIndex).Replace("+", " ");
 
             //First weather retrieving
-            // WeatherCurrent? weatherCurrent = null;
-            // await AnsiConsole.Status()
-            // .Spinner(Spinner.Known.Dots12)
-            // .StartAsync("Loading...", async ctx =>
-            // {
-            //     weatherCurrent = await weatherRetriever.GetWeather(lat, lon);
-            //     if (weatherCurrent == null)
-            //         return;
-            //     ctx.Refresh();
-            // });
+            await AnsiConsole.Status()
+            .Spinner(Spinner.Known.Dots12)
+            .StartAsync("Loading...", async ctx =>
+            {
+                weatherCurrent = await weatherRetriever.GetWeather(lat, lon);
+                if (weatherCurrent == null)
+                    return;
+                ctx.Refresh();
+            });
 
             while (true)
             {
-                Canvas canvas = new Canvas(25, 16);
-                ImageMaker imageMaker = new();
-                canvas = imageMaker.Draw(canvas, Enums.WMOCodes.Fog, false);
-                canvas.PixelWidth = 2;
-                //Get weather information
-                if (true/*weatherCurrent != null*/)
+                while (weatherRetriever.updateWeatherTimer > 0)
                 {
-                    AnsiConsole.Clear();
-                    AnsiConsole.Write(new Align(
-                        canvas,
-                        HorizontalAlignment.Center,
-                        VerticalAlignment.Middle));
-                    // SHOW APP
+                    //Setup canvas
+                    Canvas canvas = new(25, 16);
+                    ImageMaker imageMaker = new();
+                    canvas.PixelWidth = 2;
+                    //Setup layout
+                    Layout layout = new Layout("Root");
+                    layout.SplitColumns(new Layout("Main"));
+
+                    //Draw
+                    if (weatherCurrent != null)
+                    {
+                        canvas = imageMaker.Draw(canvas, weatherCurrent.weather_code, weatherCurrent.is_day == 1 ? true : false);
+                        Rows rows = new Rows(new Text(name), canvas, new Text("Temp: " + weatherCurrent.temperature_2m + "°C | Hum: " + weatherCurrent.relative_humidity_2m + "% | P: " + weatherCurrent.precipitation + "%"));
+                        AnsiConsole.Clear();
+                        layout["Main"].Update(new Align(rows, HorizontalAlignment.Center, VerticalAlignment.Middle));
+                        AnsiConsole.Write(layout);
+                    }
+                    Thread.Sleep(1000);  // Update the canvas every second
+                    weatherRetriever.updateWeatherTimer -= 1000;
                 }
-                Thread.Sleep(1000);
-                // Thread.Sleep(10000);
-                // weatherCurrent = await weatherRetriever.GetWeather(lat, lon);
+                weatherRetriever.updateWeatherTimer = 900000;
+                weatherCurrent = await weatherRetriever.GetWeather(lat, lon);
             }
         }
     }
 }
+

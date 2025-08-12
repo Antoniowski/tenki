@@ -1,6 +1,8 @@
 
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Threading.Tasks;
+using System.Xml.Serialization;
 using Spectre.Console;
 
 namespace Tenki
@@ -12,13 +14,18 @@ namespace Tenki
     {
         // PUBLIC
         public bool isReady = false;
+        public WeatherCurrent? weatherCurrent;
+        public int updateWeatherTimer = 900000; //15 minutes in milliseconds
+
+        public delegate void RetrievedWeatherEventHandler();
+        public event RetrievedWeatherEventHandler? RetrievedWeather;
 
         // PRIVATE
         private const string WEATHER_BASE_PATH = "https://api.open-meteo.com";
         private const string GEOCODING_BASE_PATH = "https://geocoding-api.open-meteo.com";
         private const string WEATHER_PATH_1 = "/v1/forecast?latitude=";
         private const string WEATHER_PATH_2 = "&longitude=";
-        private const string WEATHER_PATH_3 = "&current=temperature_2m,is_day,precipitation,weather_code";
+        private const string WEATHER_PATH_3 = "&current=temperature_2m,relative_humidity_2m,is_day,precipitation,weather_code";
         private const string GEOCODING_PATH_1 = "/v1/search?name=";
         private const string GEOCODING_PATH_2 = "&count=10&language=en&format=json";
         private HttpClient? weatherClient;
@@ -80,7 +87,6 @@ namespace Tenki
             return null;
         }
 
-
         /// <summary>
         /// Get the geocoding information using the selected city name
         /// </summary>
@@ -92,20 +98,31 @@ namespace Tenki
         {
             Geocoding? geoInfo;
             string formatted_string = cityToSearch.Replace(" ", "+");
-            
+
             if (!isReady)
                 return null;
 
             string path = GEOCODING_PATH_1 + formatted_string + GEOCODING_PATH_2;
             HttpResponseMessage httpResponseMessage = await geocodingClient!.GetAsync(path);
             if (httpResponseMessage.IsSuccessStatusCode)
-            {   
+            {
                 geoInfo = await httpResponseMessage.Content.ReadFromJsonAsync<Geocoding>();
                 if (geoInfo == null)
                     return null;
                 return geoInfo;
             }
             return null;
+        }
+
+
+        public async Task WeatherRetrievingTask(string lat, string lon)
+        {
+            while (true)
+            {
+                Thread.Sleep(900000); //15 minutes
+                weatherCurrent = await GetWeather(lat, lon);
+                RetrievedWeather?.Invoke();
+            }
         }
     }
 }
