@@ -5,8 +5,8 @@ Tenki is a simple weather displayer for the terminal written in C# using Spectre
 ![preview](https://github.com/Antoniowski/tenki/blob/main/tenki_preview.png?raw=true)
 
 
-Open-meteo.com  is used as weather API. The version used is the "non-commercial" one, so it is limited to 10000 call 
-a day. Same story for the geocoding API that uses geocoding.open-meteo.com.
+[open-meteo.com](https://open-meteo.com/en/docs)  is used as weather API. The version used is the "non-commercial" one, so it is limited to 10000 call 
+a day. Same story for the geocoding API.
 
 ## Installation
 For now, there is no proper installation method. The only way is to compile the program using the following command:
